@@ -449,15 +449,35 @@ NSString *const HNKErrorDomain = @"com.hpique.haneke";
 
 - (void)setDiskCapacity:(unsigned long long)diskCapacity
 {
-    _diskCapacity = diskCapacity;
+    if (_diskPersistantCache) {
+        _diskCapacity = diskCapacity;
+    } else {
+        _diskCapacity = ULLONG_MAX;
+    }
+    
     self.diskCache.capacity = _diskCapacity;
+}
+
+- (void)setDiskPersistantCache:(BOOL)diskPersistantCache
+{
+    _diskPersistantCache = diskPersistantCache;
+    self.diskCapacity = ULLONG_MAX;
 }
 
 #pragma mark Private
 
 - (NSString*)directory
 {
-    NSString *rootDirectory = self.cache.rootDirectory;
+    NSString *rootDirectory;
+    if (_diskPersistantCache) {
+        NSString *cachesDirectory = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) firstObject];
+        static NSString *cachePathComponent = @"com.hpique.haneke";
+        NSString *path = [cachesDirectory stringByAppendingPathComponent:cachePathComponent];
+        rootDirectory = [path stringByAppendingPathComponent:[self.cache.rootDirectory lastPathComponent]];
+    } else {
+        rootDirectory = self.cache.rootDirectory;
+    }
+    
     NSString *directory = [rootDirectory stringByAppendingPathComponent:self.name];
     NSError *error;
     if (![[NSFileManager defaultManager] createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:&error])

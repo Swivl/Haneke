@@ -217,6 +217,11 @@ typedef NS_ENUM(NSInteger, HNKPreloadPolicy)
 @property (nonatomic, assign) HNKScaleMode scaleMode;
 
 /**
+ If YES then disk cache never expire and never cleared until manual removing. NO by default.
+ */
+@property (nonatomic, assign) BOOL diskPersistantCache;
+
+/**
  The disk cache capacity for the format. If 0 Haneke will only use memory cache. 0 by default.
  */
 @property (nonatomic, assign) unsigned long long diskCapacity;
