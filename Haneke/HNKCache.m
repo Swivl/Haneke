@@ -80,7 +80,10 @@ NSString *const HNKErrorDomain = @"com.hpique.haneke";
         NSString *path = [cachesDirectory stringByAppendingPathComponent:cachePathComponent];
         _rootDirectory = [path stringByAppendingPathComponent:name];
         
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didReceiveMemoryWarning:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(didReceiveMemoryWarning:)
+                                                     name:UIApplicationDidReceiveMemoryWarningNotification
+                                                   object:nil];
     }
     return self;
 }
@@ -110,9 +113,11 @@ NSString *const HNKErrorDomain = @"com.hpique.haneke";
     _formats[formatName] = format;
     format.cache = self;
     format.diskCache = [[HNKDiskCache alloc] initWithDirectory:format.directory capacity:format.diskCapacity];
-    [self enumeratePreloadImagesOfFormat:format usingBlock:^(NSString *key, UIImage *image) {
-        [self setMemoryImage:image forKey:key format:format];
-    }];
+    if (!format.restrictMemoryCache) {
+        [self enumeratePreloadImagesOfFormat:format usingBlock:^(NSString *key, UIImage *image) {
+            [self setMemoryImage:image forKey:key format:format];
+        }];
+    }
 }
 
 - (NSDictionary*)formats
@@ -185,11 +190,11 @@ NSString *const HNKErrorDomain = @"com.hpique.haneke";
     
     [format.diskCache fetchDataForKey:key success:^(NSData *data) {
         HanekeLog(@"Disk cache hit: %@/%@", formatName, key.lastPathComponent);
-        UIImage *image = [UIImage imageWithData:data];
+        UIImage *image = [[UIImage alloc] initWithData:data];
         if (image)
         {
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                UIImage *decompressedImage = [image hnk_decompressedImage];
+                UIImage *decompressedImage = format.restrictMemoryCache ? image : [image hnk_decompressedImage];
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [self setMemoryImage:decompressedImage forKey:key format:format];
                     if (successBlock) successBlock(decompressedImage);
@@ -296,7 +301,9 @@ NSString *const HNKErrorDomain = @"com.hpique.haneke";
     if (format.postResizeBlock) image = format.postResizeBlock(key, image);
     if (image == original)
     {
-        image = [image hnk_decompressedImage];
+        if (!format.restrictMemoryCache) {
+            image = [image hnk_decompressedImage];
+        }
     }
     return image;
 }
@@ -311,6 +318,10 @@ NSString *const HNKErrorDomain = @"com.hpique.haneke";
 
 - (void)setMemoryImage:(UIImage*)image forKey:(NSString*)key format:(HNKCacheFormat*)format
 {
+    if (format.restrictMemoryCache) {
+        return;
+    }
+    
     NSString *formatName = format.name;
     NSCache *cache = _memoryCaches[formatName];
     if (!cache)
@@ -370,8 +381,10 @@ NSString *const HNKErrorDomain = @"com.hpique.haneke";
     {
         if (format.diskCapacity == 0) return;
         
-        NSData *data = [image hnk_dataWithCompressionQuality:format.compressionQuality];
-        [format.diskCache setData:data forKey:key];
+        @autoreleasepool {
+            NSData *data = [image hnk_dataWithCompressionQuality:format.compressionQuality];
+            [format.diskCache setData:data forKey:key];
+        }
     }
     else
     {
@@ -532,7 +545,6 @@ NSString *const HNKErrorDomain = @"com.hpique.haneke";
     // Ideally we would simply use kCGImageSourceShouldCacheImmediately but as of iOS 7.1 it locks on copyImageBlockSetJPEG which makes it dangerous.
     // const CGImageSourceRef sourceRef = CGImageSourceCreateWithData((__bridge CFDataRef)data, NULL);
     // CGImageRef imageRef = CGImageSourceCreateImageAtIndex(sourceRef, 0, (__bridge CFDictionaryRef)@{(id)kCGImageSourceShouldCacheImmediately: @YES});
-    
     CGImageRef originalImageRef = self.CGImage;
     const CGBitmapInfo originalBitmapInfo = CGImageGetBitmapInfo(originalImageRef);
     

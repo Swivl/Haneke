@@ -44,7 +44,11 @@
 {
     _cancelled = NO;
     __weak __typeof__(self) weakSelf = self;
-    _dataTask = [self.URLSession dataTaskWithURL:_URL completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:_URL
+                                             cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                         timeoutInterval:120.0];
+    _dataTask = [self.URLSession dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         __strong __typeof__(weakSelf) strongSelf = weakSelf;
 
         if (!strongSelf) return;

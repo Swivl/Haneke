@@ -117,6 +117,17 @@
  */
 - (void)setImage:(UIImage*)image forKey:(NSString*)key formatName:(NSString*)formatName;
 
+
+/**
+ Sets the image of the given key for the given format. The image is added to the disk cache if the format allows it.
+ @param image Image to add to the cache. Can be nil, in which case the current image associated to the given key and format will be removed.
+ @param key Image cache key.
+ @param format Format of the given image.
+ @discussion You can use this method to pre-populate the cache, invalidate a specific image or to add resized images obtained elsewhere (e.g., a web service that generates thumbnails). In other cases, it's best to let the cache create the resized images.
+ @warning The image size should match the format. This method won't validate this.
+ */
+- (void)setDiskImage:(UIImage*)image forKey:(NSString*)key format:(HNKCacheFormat*)format;
+
 #pragma mark Removing images
 ///---------------------------------------------
 /// @name Removing images
@@ -220,6 +231,11 @@ typedef NS_ENUM(NSInteger, HNKPreloadPolicy)
  If YES then disk cache never expire and never cleared until manual removing. NO by default.
  */
 @property (nonatomic, assign) BOOL diskPersistantCache;
+
+/**
+ If YES then memory cache never be used. NO by default.
+ */
+@property (nonatomic) BOOL restrictMemoryCache;
 
 /**
  The disk cache capacity for the format. If 0 Haneke will only use memory cache. 0 by default.
