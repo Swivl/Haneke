@@ -77,6 +77,14 @@
  */
 - (BOOL)isImageExistsForKey:(NSString*)key formatName:(NSString *)formatName;
 
+/**
+ Gets image size for data with key. If data is not an image or can't be determined then CGSizeZero returned.
+ @param key Key associated with requested data.
+ @param formatName Name of the format in which the image is desired. The format must have been previously registered with the cache.
+ @return CGSize of an image
+ */
+- (CGSize)imageSizeForKey:(NSString*)key formatName:(NSString *)formatName;
+
 #pragma mark Getting images
 ///---------------------------------------------
 /// @name Getting images

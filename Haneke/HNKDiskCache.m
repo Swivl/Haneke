@@ -21,6 +21,7 @@
 #import "HNKDiskCache.h"
 #import <CommonCrypto/CommonDigest.h> // For hnk_MD5String
 #import <sys/xattr.h> // For hnk_setValue:forExtendedFileAttribute:
+#import <ImageIO/ImageIO.h>
 
 NSString *const HNKExtendedFileAttributeKey = @"io.haneke.key";
 
@@ -75,6 +76,38 @@ NSString *const HNKExtendedFileAttributeKey = @"io.haneke.key";
 {
     NSString *path = [self pathForKey:key];
     return [[NSFileManager defaultManager] fileExistsAtPath:path];
+}
+
+- (CGSize)imageSizeForKey:(NSString*)key
+{
+    __block CGSize size = CGSizeZero;
+    dispatch_sync(_queue, ^{
+        NSURL *imageFileURL = [NSURL fileURLWithPath:[self pathForKey:key]];
+        CGImageSourceRef imageSource = CGImageSourceCreateWithURL((CFURLRef)imageFileURL, NULL);
+        if (imageSource == NULL) {
+            return;
+        }
+        
+        CGFloat width = 0.0f, height = 0.0f;
+        CFDictionaryRef imageProperties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, NULL);
+        if (imageProperties != NULL) {
+            CFNumberRef widthNum = CFDictionaryGetValue(imageProperties, kCGImagePropertyPixelWidth);
+            if (widthNum != NULL) {
+                CFNumberGetValue(widthNum, kCFNumberCGFloatType, &width);
+            }
+            
+            CFNumberRef heightNum = CFDictionaryGetValue(imageProperties, kCGImagePropertyPixelHeight);
+            if (heightNum != NULL) {
+                CFNumberGetValue(heightNum, kCFNumberCGFloatType, &height);
+            }
+            
+            CFRelease(imageProperties);
+            
+            size = CGSizeMake(width, height);
+        }
+    });
+    
+    return size;
 }
 
 #pragma mark Setting and fetching data

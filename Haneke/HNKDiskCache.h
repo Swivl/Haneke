@@ -67,6 +67,13 @@
 - (BOOL)isDataExistsForKey:(NSString*)key;
 
 
+/**
+ Gets image size for data with key. If data is not an image or can't be determined then CGSizeZero returned.
+ @param key Key associated with requested data.
+ @return CGSize of an image
+ */
+- (CGSize)imageSizeForKey:(NSString*)key;
+
 #pragma mark Setting and fetching data
 ///---------------------------------------------
 /// @name Setting and fetching data

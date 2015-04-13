@@ -139,6 +139,19 @@ NSString *const HNKErrorDomain = @"com.hpique.haneke";
     return [format.diskCache isDataExistsForKey:key];
 }
 
+- (CGSize)imageSizeForKey:(NSString*)key formatName:(NSString *)formatName
+{
+    HNKCacheFormat *format = _formats[formatName];
+    NSAssert(format, @"Unknown format %@", formatName);
+    
+    UIImage *image = [self memoryImageForKey:key format:format];
+    if (image) {
+        return image.size;
+    }
+    
+    return [format.diskCache imageSizeForKey:key];
+}
+
 #pragma mark Getting images
 
 - (BOOL)fetchImageForFetcher:(id<HNKFetcher>)fetcher formatName:(NSString *)formatName success:(void (^)(UIImage *image))successBlock failure:(void (^)(NSError *error))failureBlock
