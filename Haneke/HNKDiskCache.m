@@ -105,6 +105,8 @@ NSString *const HNKExtendedFileAttributeKey = @"io.haneke.key";
             
             size = CGSizeMake(width, height);
         }
+        
+        CFRelease(imageSource);
     });
     
     return size;
