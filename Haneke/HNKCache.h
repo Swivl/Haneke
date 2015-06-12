@@ -151,10 +151,11 @@
  */
 - (void)removeImagesOfFormatNamed:(NSString*)formatName;
 
-/** Removes all cached images for the given key.
+/** Removes all cached images for the given key in a given format.
  @param key Key whose images will be removed.
+ @param formatName Name of the format whose images will be removed.
  */
-- (void)removeImagesForKey:(NSString*)key;
+- (void)removeImagesForKey:(NSString *)key withFormatNamed:(NSString *)formatName;
 
 @end
 

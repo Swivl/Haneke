@@ -270,15 +270,10 @@ NSString *const HNKErrorDomain = @"com.hpique.haneke";
      }];
 }
 
-- (void)removeImagesForKey:(NSString *)key
+- (void)removeImagesForKey:(NSString *)key withFormatNamed:(NSString *)formatName
 {
-    [_memoryCaches enumerateKeysAndObjectsUsingBlock:^(id _, NSCache *cache, BOOL *stop) {
-        [cache removeObjectForKey:key];
-    }];
-    NSDictionary *formats = _formats.copy;
-    [formats enumerateKeysAndObjectsUsingBlock:^(id _, HNKCacheFormat *format, BOOL *stop) {
-        [self setDiskImage:nil forKey:key format:format];
-    }];
+    [_memoryCaches[formatName] removeObjectForKey:key];
+    [self setDiskImage:nil forKey:key format:_formats[formatName]];
 }
 
 #pragma mark Private (utils)
