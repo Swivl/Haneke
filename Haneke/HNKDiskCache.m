@@ -257,7 +257,7 @@ NSString *const HNKExtendedFileAttributeKey = @"io.haneke.key";
 - (NSString*)pathForKey:(NSString*)key
 {
     NSString *filename = [key hnk_stringByEscapingFilename];
-    if (filename.length >= NAME_MAX)
+    if (filename.length >= NAME_MAX || filename.length == 0)
     {
         NSString *MD5 = [key hnk_MD5String];
         NSString *pathExtension = key.pathExtension;
